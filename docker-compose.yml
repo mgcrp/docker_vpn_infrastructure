@@ -7,7 +7,7 @@ services:
     environment:
       RUST_LOG: "info"
     volumes:
-      - ./telemt/telemt.toml:/etc/telemt.toml
+      - ./telemt.toml:/etc/telemt.toml
     ports:
       - "${TELEMT_EXTERNAL_PORT:-10443}:443/tcp"
       - "9091:9091"
@@ -17,6 +17,9 @@ services:
       - ALL
     cap_add:
       - NET_BIND_SERVICE
+    tmpfs:
+      - /etc/telemt:rw,nosuid,nodev,noexec,size=16m
+      - /tmp:rw,nosuid,nodev,noexec,size=16m
     deploy:
       resources:
         limits:
