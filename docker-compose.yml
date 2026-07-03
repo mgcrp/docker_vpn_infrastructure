@@ -54,3 +54,6 @@ services:
     environment:
       STUNNEL_PORT: ${STUNNEL_PORT:-1080}
       SOCKD_PORT:   ${SOCKD_PORT:-1081}
+
+volumes:
+  stunnel-certs:
