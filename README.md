@@ -1,2 +1,7 @@
 # docker_vpn_infrastructure
 Набор VPN для установки на новую машину
+
+1) amnezia-xray - разворачивается из клинета Amnezia
+2) amnezia-awg2 - разворачивается из клиента Amnezia
+3) telemt - Telegram MTProxy
+4) dante + stunnel - Socks5 + TLS Proxy

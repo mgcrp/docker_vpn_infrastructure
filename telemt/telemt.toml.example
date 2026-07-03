@@ -1,0 +1,43 @@
+# telemt.toml
+
+show_link = ["{admin-username}"]
+
+[general]
+prefer_ipv6 = false
+fast_mode = true
+use_middle_proxy = false
+
+[general.modes]
+classic = false
+secure = false
+tls = true
+
+[general.links]
+public_host = "{ip-or-url}"
+
+[server]
+port = 443
+listen_addr_ipv4 = "0.0.0.0"
+listen_addr_ipv6 = "::"
+
+[server.api]
+enabled = true
+auth_header = "{generated_api_key}"
+whitelist = ["172.17.0.1/0"]
+
+[censorship]
+tls_domain = "mvideo.ru"    # Домен для SNI
+mask = true                 # Включает проксирование реального сайта
+mask_port = 443
+fake_cert_len = 2048
+
+[access.user_max_unique_ips]
+{username}         = {max-number-of-ips}
+
+[access.users]
+{username}         = {secret}
+
+[[upstreams]]
+type = "direct"
+enabled = true
+weight = 10
