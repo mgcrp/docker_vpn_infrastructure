@@ -1,37 +1,13 @@
 #!/bin/sh
 set -eu
 
-: "${MIERU_PORT:?ERROR: MIERU_PORT must be set}"
+MIERU_CONFIG_FILE="${MIERU_CONFIG_FILE:-/config/mieru-users.json}"
 
-MIERU_USER_NAME="${MIERU_USER_NAME:-mieru}"
-
-_creds_generated=0
-if [ -z "${MIERU_USER_PASSWORD:-}" ]; then
-    MIERU_USER_PASSWORD=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
-    _creds_generated=1
+if [ ! -f "${MIERU_CONFIG_FILE}" ]; then
+    echo "ERROR: config file not found at ${MIERU_CONFIG_FILE}" >&2
+    echo "       Copy mieru/mieru-users.json.example to mieru/mieru-users.json and edit it." >&2
+    exit 1
 fi
-
-QUOTA_JSON=""
-if [ -n "${MIERU_QUOTA_DAYS:-}" ] && [ -n "${MIERU_QUOTA_GB:-}" ]; then
-    QUOTA_JSON=",\"quotas\":[{\"days\":${MIERU_QUOTA_DAYS},\"megabytes\":$((MIERU_QUOTA_GB * 1024))}]"
-fi
-
-cat > /tmp/mieru-config.json <<EOF
-{
-    "portBindings": [
-        {
-            "port": ${MIERU_PORT},
-            "protocol": "TCP"
-        }
-    ],
-    "users": [
-        {
-            "name": "${MIERU_USER_NAME}",
-            "password": "${MIERU_USER_PASSWORD}"${QUOTA_JSON}
-        }
-    ]
-}
-EOF
 
 mita run &
 MITA_PID=$!
@@ -47,23 +23,12 @@ while [ ! -S /var/run/mita/mita.sock ]; do
     sleep 1
 done
 
-mita apply config /tmp/mieru-config.json
+mita apply config "${MIERU_CONFIG_FILE}"
 mita start
 
 echo "============================================"
-echo " MieruProxy (mita)"
-echo "--------------------------------------------"
-echo " Port      : ${MIERU_PORT}/tcp"
-echo " User      : ${MIERU_USER_NAME}"
-if [ "${_creds_generated}" = "1" ]; then
-    echo " Password  : ${MIERU_USER_PASSWORD}"
-    echo ""
-    echo " NOTE: Password was auto-generated."
-    echo "       Set MIERU_USER_PASSWORD in .env"
-    echo "       to keep it across restarts."
-fi
+echo " MieruProxy (mita) started"
 echo "============================================"
-
 mita describe config
 
 wait "$MITA_PID"

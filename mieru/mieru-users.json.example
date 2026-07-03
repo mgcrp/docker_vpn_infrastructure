@@ -1,0 +1,14 @@
+{
+    "portBindings": [
+        {
+            "port": 30443,
+            "protocol": "TCP"
+        }
+    ],
+    "users": [
+        {
+            "name": "mieru",
+            "password": "changeme"
+        }
+    ]
+}

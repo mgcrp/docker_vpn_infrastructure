@@ -80,15 +80,10 @@ services:
     build: mieru/
     container_name: mieru
     restart: unless-stopped
-    environment:
-      MIERU_PORT:           ${MIERU_PORT:-30443}
-      MIERU_USER_NAME:      ${MIERU_USER_NAME:-mieru}
-      MIERU_USER_PASSWORD:  ${MIERU_USER_PASSWORD:-}
-      MIERU_QUOTA_DAYS:     ${MIERU_QUOTA_DAYS:-}
-      MIERU_QUOTA_GB:       ${MIERU_QUOTA_GB:-}
     ports:
       - "${MIERU_PORT:-30443}:${MIERU_PORT:-30443}/tcp"
     volumes:
+      - ./mieru/mieru-users.json:/config/mieru-users.json:ro
       - mieru-etc:/etc/mita
       - mieru-data:/var/lib/mita
     cap_drop:

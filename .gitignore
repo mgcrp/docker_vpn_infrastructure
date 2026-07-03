@@ -2,6 +2,7 @@
 telemt.toml
 .env
 sockd.conf
+mieru-users.json
 
 .DS_Store
 
