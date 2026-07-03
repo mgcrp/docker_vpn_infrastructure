@@ -9,8 +9,8 @@ services:
     volumes:
       - ./telemt/telemt.toml:/etc/telemt.toml
     ports:
-      - "10443:443/tcp"
-      - "${TELEMT_EXTERNAL_PORT:-9091}:9091"
+      - "${TELEMT_EXTERNAL_PORT:-10443}:443/tcp"
+      - "9091:9091"
     security_opt:
       - no-new-privileges:true
     cap_drop:
