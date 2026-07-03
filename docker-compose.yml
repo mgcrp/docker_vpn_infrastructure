@@ -28,6 +28,7 @@ services:
 
   dante:
     build: dante/
+    container_name: dante
     image: banfen321/dante-proxy:latest
     restart: unless-stopped
     network_mode: host
