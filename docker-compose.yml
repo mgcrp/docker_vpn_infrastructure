@@ -27,7 +27,7 @@ services:
     build: dante/
     image: banfen321/dante-proxy:latest
     restart: unless-stopped
-    # network_mode: host
+    network_mode: host
     environment:
       SOCKD_PORT:           ${SOCKD_PORT:-1080}
       SOCKD_BIND_ADDR:      ${SOCKD_BIND_ADDR:-0.0.0.0}
@@ -46,13 +46,11 @@ services:
   stunnel:
     build: dante/stunnel/
     restart: unless-stopped
-    # network_mode: host
+    network_mode: host
     volumes:
       - stunnel-certs:/etc/stunnel/certs
-    ports:
-      - "${DANTE_EXTERNAL_PORT:-1080}:${STUNNEL_PORT:-1080}/tcp"
     environment:
-      STUNNEL_PORT: ${STUNNEL_PORT:-1080}
+      STUNNEL_PORT: ${DANTE_EXTERNAL_PORT:-1080}
       SOCKD_PORT:   ${SOCKD_PORT:-1081}
 
 volumes:
