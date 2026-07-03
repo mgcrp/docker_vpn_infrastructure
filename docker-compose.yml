@@ -7,7 +7,7 @@ services:
     environment:
       RUST_LOG: "info"
     volumes:
-      - ./telemt.toml:/etc/telemt.toml
+      - ./telemt/telemt.toml:/etc/telemt.toml
     ports:
       - "${TELEMT_EXTERNAL_PORT:-10443}:443/tcp"
       - "9091:9091"
