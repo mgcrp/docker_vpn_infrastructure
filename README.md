@@ -5,3 +5,4 @@
 2) amnezia-awg2 - разворачивается из клиента Amnezia
 3) telemt - Telegram MTProxy
 4) dante + stunnel - Socks5 + TLS Proxy
+5) naive - NaiveProxy (Caddy + forwardproxy)

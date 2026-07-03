@@ -1,0 +1,21 @@
+{
+    http_port NAIVE_HTTP_PORT
+    https_port NAIVE_HTTPS_PORT
+    order forward_proxy before reverse_proxy
+}
+
+:NAIVE_HTTPS_PORT, NAIVE_DOMAIN {
+    tls NAIVE_EMAIL
+
+    forward_proxy {
+        basic_auth NAIVE_USER_NAME NAIVE_USER_PASSWORD
+        hide_ip
+        hide_via
+        probe_resistance
+    }
+
+    reverse_proxy https://NAIVE_MASK_SITE {
+        header_up Host {upstream_hostport}
+        header_up X-Forwarded-Host {host}
+    }
+}

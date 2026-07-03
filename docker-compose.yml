@@ -46,5 +46,38 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  naive:
+    build: naive/
+    image: vpn-infra/naive-proxy:latest
+    container_name: naive
+    restart: unless-stopped
+    environment:
+      NAIVE_DOMAIN:         ${NAIVE_DOMAIN:?}
+      NAIVE_EMAIL:          ${NAIVE_EMAIL:?}
+      NAIVE_USER_NAME:      ${NAIVE_USER_NAME:-naive}
+      NAIVE_USER_PASSWORD:  ${NAIVE_USER_PASSWORD:-}
+      NAIVE_MASK_SITE:      ${NAIVE_MASK_SITE:-yastatic.net}
+      NAIVE_HTTP_PORT:      ${NAIVE_HTTP_PORT:-80}
+      NAIVE_HTTPS_PORT:     ${NAIVE_HTTPS_PORT:-443}
+    ports:
+      - "${NAIVE_HTTP_PORT:-80}:${NAIVE_HTTP_PORT:-80}/tcp"
+      - "${NAIVE_HTTPS_PORT:-443}:${NAIVE_HTTPS_PORT:-443}/tcp"
+    volumes:
+      - naive-data:/data
+      - naive-config:/config
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
 volumes:
   stunnel-certs:
+  naive-data:
+  naive-config:
