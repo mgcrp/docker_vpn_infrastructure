@@ -7,3 +7,4 @@
 4) dante + stunnel - Socks5 + TLS Proxy
 5) naive - NaiveProxy (Caddy + forwardproxy)
 6) mieru - MieruProxy (mita)
+7) node-exporter + cadvisor - Prometheus метрики хоста и контейнеров
