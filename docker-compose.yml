@@ -48,7 +48,6 @@ services:
 
   naive:
     build: naive/
-    image: vpn-infra/naive-proxy:latest
     container_name: naive
     restart: unless-stopped
     environment:
@@ -77,7 +76,34 @@ services:
           cpus: "0.50"
           memory: 256M
 
+  mieru:
+    build: mieru/
+    container_name: mieru
+    restart: unless-stopped
+    environment:
+      MIERU_PORT:           ${MIERU_PORT:-30443}
+      MIERU_USER_NAME:      ${MIERU_USER_NAME:-mieru}
+      MIERU_USER_PASSWORD:  ${MIERU_USER_PASSWORD:-}
+      MIERU_QUOTA_DAYS:     ${MIERU_QUOTA_DAYS:-}
+      MIERU_QUOTA_GB:       ${MIERU_QUOTA_GB:-}
+    ports:
+      - "${MIERU_PORT:-30443}:${MIERU_PORT:-30443}/tcp"
+    volumes:
+      - mieru-etc:/etc/mita
+      - mieru-data:/var/lib/mita
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
 volumes:
   stunnel-certs:
   naive-data:
   naive-config:
+  mieru-etc:
+  mieru-data:
