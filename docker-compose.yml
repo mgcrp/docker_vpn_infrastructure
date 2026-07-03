@@ -46,15 +46,5 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  stunnel:
-    build: dante/stunnel/
-    restart: unless-stopped
-    network_mode: host
-    volumes:
-      - stunnel-certs:/etc/stunnel/certs
-    environment:
-      STUNNEL_PORT: ${DANTE_EXTERNAL_PORT:-1080}
-      SOCKD_PORT:   ${SOCKD_PORT:-1081}
-
 volumes:
   stunnel-certs:
