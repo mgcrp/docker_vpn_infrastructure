@@ -86,7 +86,6 @@ services:
     environment:
       TROJAN_PORT:          ${TROJAN_PORT:-40443}
       TROJAN_DOMAIN:        ${NAIVE_DOMAIN:?}
-      TROJAN_USER_NAME:     ${TROJAN_USER_NAME:-trojan}
       TROJAN_USER_PASSWORD: ${TROJAN_USER_PASSWORD:-}
     ports:
       - "${TROJAN_PORT:-40443}:${TROJAN_PORT:-40443}/tcp"

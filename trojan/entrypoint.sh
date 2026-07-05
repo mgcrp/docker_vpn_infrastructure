@@ -4,7 +4,6 @@ set -eu
 : "${TROJAN_DOMAIN:?ERROR: TROJAN_DOMAIN must be set}"
 
 TROJAN_PORT="${TROJAN_PORT:-40443}"
-TROJAN_USER_NAME="${TROJAN_USER_NAME:-trojan}"
 NAIVE_CERT_DIR="${NAIVE_CERT_DIR:-/naive-data/caddy/certificates}"
 
 _creds_generated=0
@@ -42,7 +41,6 @@ echo " Trojan Proxy"
 echo "--------------------------------------------"
 echo " Domain    : ${TROJAN_DOMAIN}"
 echo " Port      : ${TROJAN_PORT}"
-echo " User      : ${TROJAN_USER_NAME}"
 if [ "${_creds_generated}" = "1" ]; then
     echo " Password  : ${TROJAN_USER_PASSWORD}"
     echo ""
