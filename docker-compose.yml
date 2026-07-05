@@ -77,6 +77,33 @@ services:
           cpus: "0.50"
           memory: 256M
 
+  trojan:
+    build: trojan/
+    container_name: trojan
+    restart: unless-stopped
+    depends_on:
+      - naive
+    environment:
+      TROJAN_PORT:          ${TROJAN_PORT:-40443}
+      TROJAN_DOMAIN:        ${NAIVE_DOMAIN:?}
+      TROJAN_USER_NAME:     ${TROJAN_USER_NAME:-trojan}
+      TROJAN_USER_PASSWORD: ${TROJAN_USER_PASSWORD:-}
+    ports:
+      - "${TROJAN_PORT:-40443}:${TROJAN_PORT:-40443}/tcp"
+    volumes:
+      - naive-data:/naive-data:ro
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
   mieru:
     build: mieru/
     container_name: mieru

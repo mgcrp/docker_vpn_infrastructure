@@ -1,0 +1,32 @@
+{
+    "run_type": "server",
+    "local_addr": "0.0.0.0",
+    "local_port": TROJAN_PORT,
+    "remote_addr": "127.0.0.1",
+    "remote_port": 80,
+    "password": [
+        "TROJAN_USER_PASSWORD"
+    ],
+    "log_level": 1,
+    "ssl": {
+        "cert": "TROJAN_CERT_PATH",
+        "key": "TROJAN_KEY_PATH",
+        "key_password": "",
+        "alpn": [
+            "http/1.1"
+        ],
+        "reuse_session": true,
+        "session_ticket": false,
+        "session_timeout": 600
+    },
+    "tcp": {
+        "prefer_ipv4": false,
+        "no_delay": true,
+        "keep_alive": true,
+        "reuse_port": false,
+        "fast_open": false
+    },
+    "mysql": {
+        "enabled": false
+    }
+}

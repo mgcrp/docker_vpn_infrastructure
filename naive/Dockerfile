@@ -12,6 +12,9 @@ FROM alpine:3.21
 
 RUN apk add --no-cache ca-certificates
 
+ENV XDG_DATA_HOME=/data
+ENV XDG_CONFIG_HOME=/config
+
 COPY --from=builder /caddy /usr/bin/caddy
 COPY Caddyfile.tmpl /etc/caddy/Caddyfile.tmpl
 COPY entrypoint.sh /entrypoint.sh
