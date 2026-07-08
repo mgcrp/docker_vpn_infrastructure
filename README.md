@@ -8,7 +8,8 @@
 5) naive - NaiveProxy (Caddy + forwardproxy)
 6) mieru - MieruProxy (mita)
 7) trojan - Trojan (trojan-gfw)
-8) node-exporter + cadvisor - Prometheus метрики хоста и контейнеров
+8) hysteria2 - Hysteria2 (apernet/hysteria)
+9) node-exporter + cadvisor - Prometheus метрики хоста и контейнеров
 
 ## Trojan
 
@@ -38,3 +39,34 @@ Trojan поддерживает несколько паролей одновре
 2. Пересоздайте контейнер: `docker compose up -d --build trojan`.
 
 `TROJAN_USER_PASSWORD` (первый пользователь) продолжит браться из `.env`, остальные пароли — это просто статичные строки в шаблоне.
+
+## Hysteria2
+
+Hysteria2 — proxy поверх QUIC (UDP), маскирующийся под HTTP/3. Как и trojan, переиспользует TLS-сертификат `naive` для `NAIVE_DOMAIN` — отдельный домен/почта не нужны. Используется официальный образ `tobyxdd/hysteria`, свой Dockerfile не собирается: конфиг генерируется скриптом `hysteria2/entrypoint.sh`, примонтированным в контейнер поверх готового образа.
+
+### Настройка
+
+1. В `.env` укажите:
+   - `HYSTERIA2_PORT` — UDP-порт, на котором слушает hysteria2 (по умолчанию `50443`);
+   - `HYSTERIA2_PASSWORD` — пароль первого пользователя. Как и trojan, hysteria2 в базовом режиме (`auth.type: password`) аутентифицирует по единому паролю без привязки к логину. Если пароль не задан, при первом запуске он будет сгенерирован автоматически и выведен в лог контейнера (`docker compose logs hysteria2`).
+2. Убедитесь, что `naive` запущен и уже получил сертификат для `NAIVE_DOMAIN` — `hysteria2` при старте ждёт появления файлов сертификата (до ~4 минут), после чего завершится с ошибкой, если сертификат так и не появился.
+3. Запустите сервис: `docker compose up -d naive hysteria2`.
+4. Не забудьте, что hysteria2 работает по UDP — на файрволе/у хостинг-провайдера должен быть открыт `HYSTERIA2_PORT/udp`, а не `tcp`.
+
+Параметры подключения клиента: адрес — `NAIVE_DOMAIN`, порт — `HYSTERIA2_PORT`, пароль — `HYSTERIA2_PASSWORD`, SNI — `NAIVE_DOMAIN`.
+
+### Как добавить пользователя
+
+В отличие от trojan, режим `auth.type: password` в hysteria2 поддерживает только один общий пароль — несколько независимых учётных записей им не сделать. Чтобы завести несколько именованных пользователей, нужно переключиться на режим `userpass`:
+
+1. Откройте `hysteria2/config.yaml.tmpl` и замените секцию `auth` на:
+   ```yaml
+   auth:
+     type: userpass
+     userpass:
+       user1: HYSTERIA2_PASSWORD
+       user2: пароль-второго-пользователя
+   ```
+2. Пересоздайте контейнер: `docker compose up -d hysteria2` (свой образ не пересобирается, достаточно пересоздать контейнер, чтобы подхватить новый шаблон).
+
+`HYSTERIA2_PASSWORD` (первый пользователь) продолжит браться из `.env`, остальные пары логин/пароль — это просто статичные строки в шаблоне.

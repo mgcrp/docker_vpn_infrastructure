@@ -103,6 +103,35 @@ services:
           cpus: "0.50"
           memory: 256M
 
+  hysteria2:
+    image: tobyxdd/hysteria:v2.9.3
+    container_name: hysteria2
+    restart: unless-stopped
+    depends_on:
+      - naive
+    entrypoint: ["/bin/sh", "/hysteria/entrypoint.sh"]
+    environment:
+      HYSTERIA2_PORT:     ${HYSTERIA2_PORT:-50443}
+      HYSTERIA2_DOMAIN:   ${NAIVE_DOMAIN:?}
+      HYSTERIA2_PASSWORD: ${HYSTERIA2_PASSWORD:-}
+    ports:
+      - "${HYSTERIA2_PORT:-50443}:${HYSTERIA2_PORT:-50443}/udp"
+    volumes:
+      - ./hysteria2/entrypoint.sh:/hysteria/entrypoint.sh:ro
+      - ./hysteria2/config.yaml.tmpl:/hysteria/config.yaml.tmpl:ro
+      - naive-data:/naive-data:ro
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
   mieru:
     build: mieru/
     container_name: mieru
