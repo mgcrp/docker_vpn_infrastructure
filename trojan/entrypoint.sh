@@ -4,7 +4,9 @@ set -eu
 : "${TROJAN_DOMAIN:?ERROR: TROJAN_DOMAIN must be set}"
 
 TROJAN_PORT="${TROJAN_PORT:-40443}"
-NAIVE_CERT_DIR="${NAIVE_CERT_DIR:-/naive-data/caddy/certificates}"
+CERT_DIR="${CERT_DIR:-/certs}"
+TROJAN_CERT="${CERT_DIR}/${TROJAN_DOMAIN}.crt"
+TROJAN_KEY="${CERT_DIR}/${TROJAN_DOMAIN}.key"
 
 _creds_generated=0
 if [ -z "${TROJAN_USER_PASSWORD:-}" ]; then
@@ -12,18 +14,13 @@ if [ -z "${TROJAN_USER_PASSWORD:-}" ]; then
     _creds_generated=1
 fi
 
-echo "INFO: waiting for TLS certificate for ${TROJAN_DOMAIN} (issued by naive)..."
+echo "INFO: waiting for TLS certificate for ${TROJAN_DOMAIN} (synced from naive)..."
 i=0
-while :; do
-    TROJAN_CERT=$(find "${NAIVE_CERT_DIR}" -type f -name "${TROJAN_DOMAIN}.crt" -path "*/${TROJAN_DOMAIN}/*" 2>/dev/null | head -n1)
-    TROJAN_KEY=$(find "${NAIVE_CERT_DIR}" -type f -name "${TROJAN_DOMAIN}.key" -path "*/${TROJAN_DOMAIN}/*" 2>/dev/null | head -n1)
-    if [ -n "${TROJAN_CERT}" ] && [ -n "${TROJAN_KEY}" ]; then
-        break
-    fi
+while [ ! -f "${TROJAN_CERT}" ] || [ ! -f "${TROJAN_KEY}" ]; do
     i=$((i + 1))
     if [ "$i" -ge 120 ]; then
-        echo "ERROR: certificate for ${TROJAN_DOMAIN} not found under ${NAIVE_CERT_DIR}" >&2
-        echo "       Make sure the naive container is running and has issued a certificate for this domain." >&2
+        echo "ERROR: certificate for ${TROJAN_DOMAIN} not found under ${CERT_DIR}" >&2
+        echo "       Make sure the cert-sync container is running and naive has issued a certificate for this domain." >&2
         exit 1
     fi
     sleep 2

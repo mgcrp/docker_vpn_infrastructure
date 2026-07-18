@@ -23,7 +23,7 @@ listen_addr_ipv6 = "::"
 [server.api]
 enabled = true
 auth_header = "{generated_api_key}"
-whitelist = ["172.17.0.1/0"]
+whitelist = ["172.17.0.1/32"]
 
 [censorship]
 tls_domain = "mvideo.ru"    # Домен для SNI

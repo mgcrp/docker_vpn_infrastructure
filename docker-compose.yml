@@ -1,7 +1,7 @@
 services:
 
   telemt:
-    image: whn0thacked/telemt-docker:latest
+    build: telemt/
     container_name: telemt
     restart: unless-stopped
     environment:
@@ -10,7 +10,7 @@ services:
       - ./telemt/telemt.toml:/etc/telemt.toml
     ports:
       - "${TELEMT_EXTERNAL_PORT:-10443}:443/tcp"
-      - "9091:9091"
+      - "127.0.0.1:9091:9091"
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -31,7 +31,6 @@ services:
     container_name: dante
     image: banfen321/dante-proxy:latest
     restart: unless-stopped
-    network_mode: host
     environment:
       SOCKD_PORT:           ${SOCKD_PORT:-1080}
       SOCKD_BIND_ADDR:      ${SOCKD_BIND_ADDR:-0.0.0.0}
@@ -39,6 +38,8 @@ services:
       SOCKD_USER_NAME:      ${SOCKD_USER_NAME:-proxy}
       SOCKD_USER_PASSWORD:  ${SOCKD_USER_PASSWORD:-}
       SOCKD_EXTERNAL_IFACE: ${SOCKD_EXTERNAL_IFACE:-}
+    ports:
+      - "${SOCKD_PORT:-1080}:${SOCKD_PORT:-1080}/tcp"
     cap_drop:
       - ALL
     cap_add:
@@ -77,12 +78,35 @@ services:
           cpus: "0.50"
           memory: 256M
 
+  cert-sync:
+    image: alpine:3.21
+    container_name: cert-sync
+    restart: unless-stopped
+    depends_on:
+      - naive
+    entrypoint: ["/bin/sh", "/cert-sync/entrypoint.sh"]
+    environment:
+      NAIVE_DOMAIN: ${NAIVE_DOMAIN:?}
+    volumes:
+      - ./cert-sync/entrypoint.sh:/cert-sync/entrypoint.sh:ro
+      - naive-data:/naive-data:ro
+      - shared-certs:/shared-certs
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.10"
+          memory: 32M
+
   trojan:
     build: trojan/
     container_name: trojan
     restart: unless-stopped
     depends_on:
-      - naive
+      - cert-sync
     environment:
       TROJAN_PORT:          ${TROJAN_PORT:-40443}
       TROJAN_DOMAIN:        ${NAIVE_DOMAIN:?}
@@ -90,7 +114,7 @@ services:
     ports:
       - "${TROJAN_PORT:-40443}:${TROJAN_PORT:-40443}/tcp"
     volumes:
-      - naive-data:/naive-data:ro
+      - shared-certs:/certs:ro
     cap_drop:
       - ALL
     cap_add:
@@ -108,7 +132,7 @@ services:
     container_name: hysteria2
     restart: unless-stopped
     depends_on:
-      - naive
+      - cert-sync
     entrypoint: ["/bin/sh", "/hysteria/entrypoint.sh"]
     environment:
       HYSTERIA2_PORT:     ${HYSTERIA2_PORT:-50443}
@@ -119,7 +143,7 @@ services:
     volumes:
       - ./hysteria2/entrypoint.sh:/hysteria/entrypoint.sh:ro
       - ./hysteria2/config.yaml.tmpl:/hysteria/config.yaml.tmpl:ro
-      - naive-data:/naive-data:ro
+      - shared-certs:/certs:ro
     cap_drop:
       - ALL
     cap_add:
@@ -153,16 +177,21 @@ services:
           memory: 256M
 
   node-exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.9.1
     container_name: node-exporter
     restart: unless-stopped
-    network_mode: host
     command:
-      - "--path.rootfs=/host"
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/host/root"
       - "--web.listen-address=:${NODE_EXPORTER_PORT:-9100}"
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    ports:
+      - "${NODE_EXPORTER_PORT:-9100}:${NODE_EXPORTER_PORT:-9100}/tcp"
     volumes:
-      - /:/host:ro,rslave
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
     cap_drop:
       - ALL
     security_opt:
@@ -174,11 +203,9 @@ services:
           memory: 128M
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
     container_name: cadvisor
     restart: unless-stopped
-    ports:
-      - "${CADVISOR_PORT:-8081}:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -194,9 +221,36 @@ services:
           cpus: "0.30"
           memory: 256M
 
+  cadvisor-proxy:
+    build: cadvisor-proxy/
+    container_name: cadvisor-proxy
+    restart: unless-stopped
+    depends_on:
+      - cadvisor
+    environment:
+      CADVISOR_AUTH_USER:     ${CADVISOR_AUTH_USER:?}
+      CADVISOR_AUTH_PASSWORD: ${CADVISOR_AUTH_PASSWORD:?}
+    ports:
+      - "${CADVISOR_PORT:-8081}:80"
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.10"
+          memory: 64M
+
 volumes:
   stunnel-certs:
   naive-data:
   naive-config:
+  shared-certs:
   mieru-etc:
   mieru-data:

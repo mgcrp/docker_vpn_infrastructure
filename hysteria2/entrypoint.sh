@@ -4,7 +4,9 @@ set -eu
 : "${HYSTERIA2_DOMAIN:?ERROR: HYSTERIA2_DOMAIN must be set}"
 
 HYSTERIA2_PORT="${HYSTERIA2_PORT:-50443}"
-NAIVE_CERT_DIR="${NAIVE_CERT_DIR:-/naive-data/caddy/certificates}"
+CERT_DIR="${CERT_DIR:-/certs}"
+HYSTERIA2_CERT="${CERT_DIR}/${HYSTERIA2_DOMAIN}.crt"
+HYSTERIA2_KEY="${CERT_DIR}/${HYSTERIA2_DOMAIN}.key"
 
 _creds_generated=0
 if [ -z "${HYSTERIA2_PASSWORD:-}" ]; then
@@ -12,18 +14,13 @@ if [ -z "${HYSTERIA2_PASSWORD:-}" ]; then
     _creds_generated=1
 fi
 
-echo "INFO: waiting for TLS certificate for ${HYSTERIA2_DOMAIN} (issued by naive)..."
+echo "INFO: waiting for TLS certificate for ${HYSTERIA2_DOMAIN} (synced from naive)..."
 i=0
-while :; do
-    HYSTERIA2_CERT=$(find "${NAIVE_CERT_DIR}" -type f -name "${HYSTERIA2_DOMAIN}.crt" -path "*/${HYSTERIA2_DOMAIN}/*" 2>/dev/null | head -n1)
-    HYSTERIA2_KEY=$(find "${NAIVE_CERT_DIR}" -type f -name "${HYSTERIA2_DOMAIN}.key" -path "*/${HYSTERIA2_DOMAIN}/*" 2>/dev/null | head -n1)
-    if [ -n "${HYSTERIA2_CERT}" ] && [ -n "${HYSTERIA2_KEY}" ]; then
-        break
-    fi
+while [ ! -f "${HYSTERIA2_CERT}" ] || [ ! -f "${HYSTERIA2_KEY}" ]; do
     i=$((i + 1))
     if [ "$i" -ge 120 ]; then
-        echo "ERROR: certificate for ${HYSTERIA2_DOMAIN} not found under ${NAIVE_CERT_DIR}" >&2
-        echo "       Make sure the naive container is running and has issued a certificate for this domain." >&2
+        echo "ERROR: certificate for ${HYSTERIA2_DOMAIN} not found under ${CERT_DIR}" >&2
+        echo "       Make sure the cert-sync container is running and naive has issued a certificate for this domain." >&2
         exit 1
     fi
     sleep 2
