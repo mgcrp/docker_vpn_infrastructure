@@ -1,7 +1,7 @@
 services:
 
   telemt:
-    build: telemt/
+    image: mgcrp/mgcrp-vpn-telemt:latest
     container_name: telemt
     restart: unless-stopped
     environment:
@@ -27,9 +27,8 @@ services:
           memory: 256M
 
   dante:
-    build: dante/
+    image: mgcrp/mgcrp-vpn-dante:latest
     container_name: dante
-    image: banfen321/dante-proxy:latest
     restart: unless-stopped
     environment:
       SOCKD_PORT:           ${SOCKD_PORT:-1080}
@@ -49,7 +48,7 @@ services:
       - no-new-privileges:true
 
   naive:
-    build: naive/
+    image: mgcrp/mgcrp-vpn-naive:latest
     container_name: naive
     restart: unless-stopped
     environment:
@@ -102,7 +101,7 @@ services:
           memory: 32M
 
   trojan:
-    build: trojan/
+    image: mgcrp/mgcrp-vpn-trojan:latest
     container_name: trojan
     restart: unless-stopped
     depends_on:
@@ -157,7 +156,7 @@ services:
           memory: 256M
 
   mieru:
-    build: mieru/
+    image: mgcrp/mgcrp-vpn-mieru:latest
     container_name: mieru
     restart: unless-stopped
     ports:
@@ -222,7 +221,7 @@ services:
           memory: 256M
 
   cadvisor-proxy:
-    build: cadvisor-proxy/
+    image: mgcrp/mgcrp-vpn-cadvisor-proxy:latest
     container_name: cadvisor-proxy
     restart: unless-stopped
     depends_on:
