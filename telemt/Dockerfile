@@ -20,4 +20,4 @@ USER telemt
 EXPOSE 443 9091
 
 ENTRYPOINT ["/usr/local/bin/telemt"]
-CMD ["run", "/etc/telemt.toml"]
+CMD ["run", "/etc/telemt.toml", "--data-path", "/etc/telemt"]
